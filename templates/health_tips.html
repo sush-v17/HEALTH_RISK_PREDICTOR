@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="content">
+  <div class="hero" style="padding:28px 20px; margin-bottom:18px;">
+    <h1>Health Tips</h1>
+    <p class="typing">Small daily changes make a big difference.</p>
+    <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+      <input id="tip-search" type="search" placeholder="Search tips, e.g. 'sleep', 'cardio'" aria-label="Search tips" style="width:360px; max-width:80%; padding:10px 12px; border-radius:8px; border:1px solid #cfe2ff;">
+      <select id="tip-category" aria-label="Filter by category" style="padding:10px 12px; border-radius:8px; border:1px solid #cfe2ff;">
+        <option value="all">All categories</option>
+        <option value="nutrition">Nutrition</option>
+        <option value="activity">Activity</option>
+        <option value="sleep">Sleep</option>
+        <option value="mental">Mental Health</option>
+        <option value="prevention">Prevention</option>
+      </select>
+      <button id="toggle-favs" class="btn" type="button">Show favorites</button>
+      <button id="print-tips" class="btn" type="button">Print</button>
+    </div>
+  </div>
+
+  <div class="tips-container" id="tips-container" aria-live="polite"></div>
+
+  <template id="tip-template">
+    <article class="tip-card" role="article" data-category="">
+      <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+        <div>
+          <h3 class="tip-title"></h3>
+          <small class="tip-category" style="opacity:.8;"></small>
+        </div>
+        <div class="tip-actions" style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn btn-copy" type="button" title="Copy tip">Copy</button>
+          <button class="btn btn-fav" type="button" title="Save to favorites">♡</button>
+        </div>
+      </div>
+      <p class="tip-body" style="margin-top:10px; color:#444;"></p>
+    </article>
+  </template>
+</section>
+
+<script src="{{ url_for('static', filename='home.js') }}?v=4"></script>
+<script>
+  // fetch tips from server and render
+  document.addEventListener('DOMContentLoaded', function(){
+    fetch('{{ url_for("api_tips") }}')
+      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+      .then(data => {
+        window.HEALTH_TIPS = data || [];
+        if (window.renderHealthTips) window.renderHealthTips(window.HEALTH_TIPS);
+      })
+      .catch(() => {
+        // fallback: if API fails, try using existing client data if present
+        window.HEALTH_TIPS = window.HEALTH_TIPS || [];
+        if (window.renderHealthTips) window.renderHealthTips(window.HEALTH_TIPS);
+      });
+  });
+</script>
+{% endblock %}

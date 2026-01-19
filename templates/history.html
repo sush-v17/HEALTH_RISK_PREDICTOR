@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>📜 Prediction History</h1>
+
+  
+</div>
+
+<a href="{{ url_for('download_history') }}" class="download-btn">⬇️ Download CSV</a>
+
+<!-- Heart Risk Table -->
+<h2>❤️ Heart Risk Predictions</h2>
+{% if heart_history %}
+<table class="history-table heart-table">
+    <thead>
+        <tr>
+            <th>HighBP</th>
+            <th>HighChol</th>
+            <th>Diabetes</th>
+            <th>BMI</th>
+            <th>Smoker</th>
+            <th>GenHlth</th>
+            <th>Age</th>
+            <th>DiffWalk</th>
+            <th>Prediction Type</th>
+            <th>Result</th>
+            <th>Timestamp</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in heart_history %}
+        <tr>
+            {% for item in row %}
+            <td>{{ item }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No heart risk predictions yet.</p>
+{% endif %}
+
+<!-- Muscle Weakness Table -->
+<h2>💪 Muscle Weakness Predictions</h2>
+{% if muscle_history %}
+<table class="history-table muscle-table">
+    <thead>
+        <tr>
+            <th>PhysActivity</th>
+            <th>BMI</th>
+            <th>PhysHlth</th>
+            <th>MentHlth</th>
+            <th>Age</th>
+            <th>HighBP</th>
+            <th>GenHlth</th>
+            <th>Diabetes</th>
+            <th>Smoker</th>
+            <th>Income</th>
+            <th>Prediction Type</th>
+            <th>Result</th>
+            <th>Timestamp</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in muscle_history %}
+        <tr>
+            {% for item in row %}
+            <td>{{ item }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No muscle weakness predictions yet.</p>
+{% endif %}
+
+<!-- Clear History Button -->
+<form action="{{ url_for('clear_history') }}" method="post" onsubmit="return confirm('Are you sure you want to clear all history?');">
+    <button type="submit" class="clear-btn">🗑️ Clear History</button>
+</form>
+
+
+{% endblock %}
+

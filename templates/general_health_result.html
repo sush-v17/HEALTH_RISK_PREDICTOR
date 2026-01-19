@@ -1,0 +1,63 @@
+# =========================================================
+# GENERAL HEALTH (NEW FEATURE)
+# =========================================================
+@app.route('/general-health', methods=['POST'])
+def general_health():
+
+    # ---- HEART INPUT ----
+    heart_input = [[
+        int(request.form['HighBP']),
+        int(request.form['HighChol']),
+        int(request.form['Diabetes_012']),
+        float(request.form['BMI']),
+        int(request.form['Smoker']),
+        int(request.form['GenHlth']),
+        int(request.form['Age']),
+        int(request.form['DiffWalk'])
+    ]]
+
+    # ---- MUSCLE INPUT ----
+    muscle_input = [[
+        int(request.form['PhysActivity']),
+        float(request.form['BMI']),
+        int(request.form['PhysHlth']),
+        int(request.form['MentHlth']),
+        int(request.form['Age']),
+        int(request.form['HighBP']),
+        int(request.form['GenHlth']),
+        int(request.form['Diabetes_012']),
+        int(request.form['Smoker']),
+        int(request.form['Income'])
+    ]]
+
+    # ---- MODEL PROBABILITIES ----
+    heart_prob = heart_model.predict_proba(heart_input)[0][1]
+    muscle_prob = muscle_model.predict_proba(muscle_input)[0][1]
+
+    heart_risk = round(heart_prob * 100, 2)
+    muscle_risk = round(muscle_prob * 100, 2)
+
+    # ---- GENERAL HEALTH SCORE ----
+    general_score = calculate_general_health_risk(heart_risk, muscle_risk)
+    status = health_status(general_score)
+
+    # ---- STATUS COLOR (MOVE THIS INSIDE FUNCTION) ----
+    if status == "Good":
+        status_color = "#2ebf7f"
+    elif status == "Moderate":
+        status_color = "#f4b400"
+    else:
+        status_color = "#e53935"
+
+    # ---- INSIGHTS ----
+    insights = generate_general_insights(heart_risk, muscle_risk)
+
+    return render_template(
+        "general_health_result.html",
+        general_score=general_score,
+        status=status,
+        status_color=status_color,
+        insights=insights,
+        heart_risk=heart_risk,
+        muscle_risk=muscle_risk
+    )

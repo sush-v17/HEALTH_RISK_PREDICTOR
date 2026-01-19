@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="content" aria-labelledby="home-title">
+  <section class="hero" role="region" aria-label="Welcome">
+    <div style="max-width:1100px;margin:0 auto;">
+      <h1 id="home-title">Get healthier — one simple check at a time</h1>
+      <p style="font-size:1.05rem;opacity:.95;max-width:760px;margin:8px auto 18px;">
+        Quick, private health risk checks and practical daily tips — powered by data. Start with a short heart risk check or muscle wellness assessment.
+      </p>
+
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
+        <a class="btn hero-cta" href="{{ url_for('heart_risk') }}">Let's get started — Heart</a>
+        <a class="btn" href="{{ url_for('muscle_weakness') }}">Muscle check</a>
+        <a class="btn" href="{{ url_for('health_tips') }}">Health tips</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" aria-labelledby="features-title" style="padding-top:18px;">
+    <h2 id="features-title" style="margin-bottom:12px;color:#0077cc;">What you can do here</h2>
+    <div class="cards" role="list" aria-label="Features">
+      <a class="card" href="{{ url_for('heart_risk') }}" role="listitem">
+        <h3>Heart risk check</h3>
+        <p>Fast assessment using your answers — get actionable next steps.</p>
+      </a>
+      <a class="card" href="{{ url_for('muscle_weakness') }}" role="listitem">
+        <h3>Muscle wellness</h3>
+        <p>Predict muscle weakness risk and get targeted activity tips.</p>
+      </a>
+      <a class="card" href="{{ url_for('health_tips') }}" role="listitem">
+        <h3>Health tips</h3>
+        <p>Browse bite-sized tips you can save, copy, or print.</p>
+      </a>
+      <a class="card" href="{{ url_for('show_history') }}" role="listitem">
+        <h3>History</h3>
+        <p>Review past checks and download or clear history.</p>
+      </a>
+    </div>
+  </section>
+
+  <section aria-labelledby="stats-title" style="margin-top:26px;text-align:center;">
+    <h3 id="stats-title" style="color:#333;margin-bottom:8px;">Quick stats</h3>
+    <div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap;">
+      <div style="background:#fff;padding:14px 18px;border-radius:12px;box-shadow:0 6px 20px #00000011;min-width:150px;">
+        <div style="font-size:1.4rem;font-weight:700;color:#0077cc" data-count-to="1248">0</div>
+        <div style="opacity:.8">Checks performed</div>
+      </div>
+      <div style="background:#fff;padding:14px 18px;border-radius:12px;box-shadow:0 6px 20px #00000008;min-width:150px;">
+        <div style="font-size:1.4rem;font-weight:700;color:#2ebf7f" data-count-to="362">0</div>
+        <div style="opacity:.8">Tips saved</div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="tips-preview" style="margin-top:28px;">
+    <h3 id="tips-preview" style="color:#0077cc;margin-bottom:12px;">Top tips</h3>
+    <div class="tips-container" style="justify-content:flex-start;gap:18px;">
+      <!-- server-provided tips (first 3) -->
+      {% for tip in (TIP_LIST|default([]))[:3] %}
+      <article class="tip-card" style="width:320px;">
+        <h4 style="margin:0 0 6px;color:#0077cc;">{{ tip.title }}</h4>
+        <p style="margin:0;color:#444;">{{ tip.text }}</p>
+      </article>
+      {% endfor %}
+      <div style="align-self:center;">
+        <a class="btn" href="{{ url_for('health_tips') }}" aria-label="View all tips">View all tips</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // small UX helpers: smooth scroll and animated counters
+  (function(){
+    // smooth scrolling for internal anchors
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', e=>{
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) { e.preventDefault(); target.scrollIntoView({behavior:'smooth',block:'start'}); }
+      });
+    });
+
+    // simple counter animation
+    document.querySelectorAll('[data-count-to]').forEach(el=>{
+      const to = parseInt(el.getAttribute('data-count-to')||'0',10);
+      let cur = 0;
+      const step = Math.max(1, Math.round(to / 60));
+      const id = setInterval(()=>{
+        cur += step;
+        if (cur >= to) { el.textContent = to; clearInterval(id); }
+        else el.textContent = cur;
+      }, 16);
+    });
+  })();
+</script>
+{% endblock %}

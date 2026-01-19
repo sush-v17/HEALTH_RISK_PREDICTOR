@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="content" aria-labelledby="heart-title">
+  <h1 id="heart-title">Heart Risk Check</h1>
+  <p>Answer the short questions below — results are private and provide guidance only.</p>
+
+  <form id="heart-form" method="post" novalidate>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+      <label>
+        High blood pressure
+        <select name="HighBP" required aria-describedby="err-HighBP">
+          <option value="">Select</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+        <div id="err-HighBP" class="error-text" aria-live="polite"></div>
+      </label>
+
+      <label>
+        High cholesterol
+        <select name="HighChol" required aria-describedby="err-HighChol">
+          <option value="">Select</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+        <div id="err-HighChol" class="error-text" aria-live="polite"></div>
+      </label>
+
+      <label>
+        Diabetes (0 = No, 1 = Prediabetes, 2 = Diabetes)
+        <select name="Diabetes_012" required aria-describedby="err-Diabetes_012">
+          <option value="">Select</option>
+          <option value="0">No</option>
+          <option value="1">Prediabetes</option>
+          <option value="2">Diabetes</option>
+        </select>
+        <div id="err-Diabetes_012" class="error-text" aria-live="polite"></div>
+      </label>
+
+      <label>
+        BMI
+        <input name="BMI" type="number" step="0.1" min="10" max="70" required aria-describedby="err-BMI" />
+        <div id="err-BMI" class="error-text" aria-live="polite"></div>
+      </label>
+
+      <label>
+        Smoker
+        <select name="Smoker" required aria-describedby="err-Smoker">
+          <option value="">Select</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+        <div id="err-Smoker" class="error-text" aria-live="polite"></div>
+      </label>
+
+      <label>
+        General health (1=Excellent … 5=Poor)
+        <select name="GenHlth" required aria-describedby="err-GenHlth">
+          <option value="">Select</option>
+          <option value="1">Excellent</option>
+          <option value="2">Very good</option>
+          <option value="3">Good</option>
+          <option value="4">Fair</option>
+          <option value="5">Poor</option>
+        </select>
+        <div id="err-GenHlth" class="error-text" aria-live="polite"></div>
+      </label>
+
+      <label>
+        Age (years)
+        <input name="Age" type="number" min="10" max="120" required aria-describedby="err-Age" />
+        <div id="err-Age" class="error-text" aria-live="polite"></div>
+      </label>
+
+      <label>
+        Difficulty walking
+        <select name="DiffWalk" required aria-describedby="err-DiffWalk">
+          <option value="">Select</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+        <div id="err-DiffWalk" class="error-text" aria-live="polite"></div>
+      </label>
+    </div>
+
+    <div style="margin-top:18px; display:flex; gap:12px; align-items:center;">
+      <button id="heart-submit" class="btn" type="submit">Check my risk</button>
+      <button id="heart-reset" type="reset" class="btn" style="background:#fff;color:#0077cc;border:1px solid #b6c9e2;">Reset</button>
+      <div id="form-status" aria-live="polite" style="margin-left:12px;opacity:.9"></div>
+    </div>
+  </form>
+</section>
+
+<style>
+/* keep color palette unchanged; small helper styles for errors and loading */
+.error-text { color:#b00020; font-size:0.9rem; min-height:1.2em; margin-top:6px; }
+.btn[disabled] { opacity:0.6; cursor:not-allowed; transform:none; }
+.form-loading { display:inline-flex; align-items:center; gap:8px; opacity:.95; }
+.form-spinner { width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+
+<script>
+(function(){
+  const form = document.getElementById('heart-form');
+  const submit = document.getElementById('heart-submit');
+  const status = document.getElementById('form-status');
+
+  const fields = Array.from(form.querySelectorAll('[name]')).filter(n=> n.name);
+
+  function validateField(el){
+    const name = el.name;
+    const err = document.getElementById('err-' + name);
+    if (!el.checkValidity()) {
+      if (el.validity.valueMissing) err.textContent = 'This field is required.';
+      else if (el.validity.rangeOverflow || el.validity.rangeUnderflow) err.textContent = 'Value out of range.';
+      else err.textContent = 'Invalid value.';
+      return false;
+    }
+    // additional numeric sanity checks
+    if (el.type === 'number' && el.value !== '') {
+      const v = Number(el.value);
+      if (!Number.isFinite(v) || isNaN(v)) { err.textContent = 'Please enter a number.'; return false; }
+    }
+    err.textContent = '';
+    return true;
+  }
+
+  fields.forEach(f => {
+    f.addEventListener('input', ()=> {
+      validateField(f);
+      toggleSubmit();
+    });
+    f.addEventListener('blur', ()=> validateField(f));
+  });
+
+  function toggleSubmit(){
+    const allValid = fields.every(f => f.checkValidity() && validateField(f));
+    submit.disabled = !allValid;
+  }
+
+  form.addEventListener('submit', function(e){
+    // final validation
+    let ok = true;
+    fields.forEach(f => { if (!validateField(f)) ok = false; });
+    if (!ok) { e.preventDefault(); status.textContent = 'Please fix errors above.'; return; }
+
+    // show loading state, allow normal POST
+    submit.disabled = true;
+    const prevText = submit.textContent;
+    submit.innerHTML = '<span class="form-loading"><span class="form-spinner" aria-hidden="true"></span>Checking…</span>';
+    status.textContent = 'Processing your answers…';
+    // let submit proceed to server; in case submission is interrupted, re-enable after 6s
+    setTimeout(()=> {
+      if (!form.__submitted) {
+        submit.disabled = false;
+        submit.textContent = prevText;
+        status.textContent = '';
+      }
+    }, 6000);
+    form.__submitted = true;
+  });
+
+  form.addEventListener('reset', ()=> {
+    // clear any inline errors and status
+    fields.forEach(f => {
+      const err = document.getElementById('err-' + f.name);
+      if (err) err.textContent = '';
+    });
+    submit.disabled = false;
+    submit.textContent = 'Check my risk';
+    status.textContent = '';
+  });
+
+  // init
+  toggleSubmit();
+})();
+</script>
+{% endblock %}
